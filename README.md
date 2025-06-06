@@ -72,10 +72,11 @@ This starts the server in HTTP mode on `http://localhost:3501`
 ### Prompt Engineering
 
 For the best results, add the following to your custom prompt in your AI assistant, you should add it on a rule or directly in the prompt (e.g., Cursor):
-
-> Whenever you want to ask a question, always call the MCP `gui-input`.  
-> Whenever you’re about to complete a user request, call the MCP `gui-input` instead of simply ending the process.
-> Keep calling MCP until the user’s feedback is empty, then end the request.
+```
+Whenever you want to ask a question, always call the MCP `gui-input`.  
+Whenever you’re about to complete a user request, call the MCP `gui-input` instead of simply ending the process.
+Keep calling MCP until the user’s feedback is empty, then end the request.
+```
 
 ## 📁 Project Structure
 
