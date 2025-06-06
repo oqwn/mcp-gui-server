@@ -8,16 +8,6 @@ A Model Context Protocol (MCP) server that provides graphical user interface int
 ![Node.js](https://img.shields.io/badge/node.js-18%2B-blue)
 ![TypeScript](https://img.shields.io/badge/typescript-5.0%2B-blue)
 
-## 🌟 Features
-
-- **Interactive Feedback Style GUI**: Modern dark theme interface inspired by Interactive Feedback MCP
-- **Persistent Terminal Support**: Execute commands with maintained shell state
-- **Copy-Paste Friendly**: Optimized terminal output with smart selection detection
-- **Session Management**: Secure session handling with automatic cleanup
-- **Multiple Run Modes**: Stdio mode for MCP clients, HTTP mode for testing
-- **Auto Port Discovery**: Automatically finds available ports when default is in use
-- **Human-in-the-Loop Workflows**: Collect user feedback and command execution logs
-
 ## 📦 Installation
 
 ### Prerequisites
@@ -79,14 +69,6 @@ pnpm run dev
 
 This starts the server in HTTP mode on `http://localhost:3501`
 
-### Development Mode
-
-With auto-reload on file changes:
-
-```bash
-pnpm run dev
-```
-
 ### Prompt Engineering
 
 For the best results, add the following to your custom prompt in your AI assistant, you should add it on a rule or directly in the prompt (e.g., Cursor):
@@ -95,55 +77,6 @@ For the best results, add the following to your custom prompt in your AI assista
 > Whenever you’re about to complete a user request, call the MCP `gui-input` instead of simply ending the process.
 > Keep calling MCP until the user’s feedback is empty, then end the request.
 
-## 🛠️ Available Tools
-
-### gui-input
-
-Opens a GUI dialog to collect user input with terminal support.
-
-**Parameters:**
-
-- `prompt` (optional): Text to show the user
-- `title` (optional): Window title
-- `timeout` (optional): Timeout in seconds (default: 300)
-
-**Example:**
-
-```javascript
-await mcpClient.callTool("gui-input", {
-  prompt: "Please provide your feedback on the system",
-  title: "System Feedback",
-  timeout: 600,
-});
-```
-
-**Returns:**
-
-```
-User input received:
-Type: text
-Content: [user's input]
-Command logs: [terminal commands executed]
-Timestamp: 2024-01-01T12:00:00.000Z
-```
-
-## 🖥️ Terminal Features
-
-- **Persistent Shell**: Commands maintain state (cd, environment variables work)
-- **Home Directory Start**: Automatically starts in user's home directory
-- **All Commands Supported**: Full Linux/Unix command support
-- **Smart Scrolling**: Auto-scroll pauses during text selection
-- **Copy-Paste Optimized**: Clean selection without interference
-
-## 🎨 Interface
-
-The GUI features a modern dark theme with:
-
-- **Interactive Feedback Style**: Clean, professional design
-- **Collapsible Terminal**: Execute commands with real-time output
-- **User Input Area**: Large text area for feedback
-- **Session Management**: Automatic session handling
-
 ## 📁 Project Structure
 
 ```
@@ -151,38 +84,10 @@ mcp-gui-server/
 ├── src/
 │   ├── server.ts         # Main MCP server implementation
 │   ├── gui-service.ts    # GUI service with terminal support
-│   └── client-example.ts # HTTP client example
-├── dist/                 # Compiled JavaScript
 ├── package.json
 ├── tsconfig.json
 └── README.md
 ```
-
-## ⚙️ Configuration
-
-### Environment Variables
-
-- `GUI_PORT`: Port for GUI server (default: 3501)
-- `MCP_STDIO`: Force stdio mode when set to "true"
-
-### Command Line Arguments
-
-- `--stdio`: Run in stdio mode
-- `--dev`: Development mode with auto-reload
-
-### Available Scripts
-
-- `pnpm start`: Run the compiled server
-- `pnpm run dev`: Development mode with auto-reload
-- `pnpm run build`: Build TypeScript to JavaScript
-- `pnpm run stdio`: Run in stdio mode directly from source
-
-## 🔒 Security
-
-- **Session Validation**: All GUI access requires valid session tokens
-- **Automatic Cleanup**: Sessions expire after 5 minutes of inactivity
-- **Process Isolation**: Terminal commands run in isolated shell processes
-- **Safe Defaults**: Starts in user's home directory with standard environment
 
 ## 🐛 Troubleshooting
 
