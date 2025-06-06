@@ -1,228 +1,236 @@
-# MCP GUI Server（MCP 图形界面服务器）
+# MCP GUI Server
 
-一个提供 **图形用户界面交互**（Interactive Feedback 风格）和 **持久终端** 支持的 Model Context Protocol (MCP) 服务器。
+[English](README.md) ｜ [简体中文](README_zh.md)
+
+A Model Context Protocol (MCP) server that provides graphical user interface interaction capabilities with Interactive Feedback style and terminal support.
 
 ![Demo](https://img.shields.io/badge/status-stable-green)
 ![Node.js](https://img.shields.io/badge/node.js-18%2B-blue)
 ![TypeScript](https://img.shields.io/badge/typescript-5.0%2B-blue)
 
-## 🌟 功能亮点
+## 🌟 Features
 
-- **Interactive Feedback 风格 GUI**：现代深色主题，界面灵感来自 Interactive Feedback MCP
-- **持久终端**：在同一 Shell 会话中持续执行命令
-- **便于复制粘贴**：终端输出针对文本选择做了优化
-- **会话管理**：安全的会话处理与自动清理
-- **多运行模式**：默认 Stdio（供 MCP 客户端使用）；提供 HTTP 模式便于调试
-- **自动端口发现**：默认端口被占用时自动寻找可用端口
-- **人机协作工作流**：记录用户反馈和命令执行日志
+- **Interactive Feedback Style GUI**: Modern dark theme interface inspired by Interactive Feedback MCP
+- **Persistent Terminal Support**: Execute commands with maintained shell state
+- **Copy-Paste Friendly**: Optimized terminal output with smart selection detection
+- **Session Management**: Secure session handling with automatic cleanup
+- **Multiple Run Modes**: Stdio mode for MCP clients, HTTP mode for testing
+- **Auto Port Discovery**: Automatically finds available ports when default is in use
+- **Human-in-the-Loop Workflows**: Collect user feedback and command execution logs
 
-## 📦 安装
+## 📦 Installation
 
-### 前置条件
+### Prerequisites
 
-- Node.js 18 及以上
-- 推荐使用 **pnpm 8+** 作为包管理器
+- Node.js 18+
+- pnpm 8+ (recommended package manager)
 
-如果尚未安装 pnpm，可执行：
+Install pnpm if you haven't already:
 
 ```bash
 npm install -g pnpm
 ```
 
-### 源码安装
+### Install from Source
 
 ```bash
-# 克隆仓库
+# Clone the repository
 git clone https://github.com/oqwn/mcp-gui-server.git
 cd mcp-gui-server
 
-# 安装依赖
+# Install dependencies (using pnpm)
 pnpm install
 
-# 构建项目
+# Build the project
 pnpm run build
 ```
 
-## 🚀 使用方法
+## 🚀 Usage
 
-### MCP 客户端集成（Stdio 模式）
+### MCP Client Integration (Stdio Mode)
 
-服务器默认以 **Stdio 模式** 运行，并通过 JSON-RPC 通信：
+The server runs in stdio mode by default, communicating via JSON-RPC:
 
 ```bash
 pnpm start
 ```
 
-在 MCP 客户端（如 Claude Desktop/cursor/windsurf）中配置：
+Configure in your MCP client (e.g., Claude Desktop):
 
 ```json
 {
   "mcpServers": {
     "gui-server": {
       "command": "node",
-      "args": ["path/to/mcp-gui-server/dist/server.js", "--stdio"],
-      "cwd": "path/to/mcp-gui-server"
+      "args": ["path/to/optimized-request/dist/server.js", "--stdio"],
+      "cwd": "path/to/optimized-request"
     }
   }
 }
 ```
 
-### HTTP 模式（调试用）
+### HTTP Mode (Testing)
 
-开发或调试时可启用 HTTP 模式：
-
-```bash
-pnpm run dev
-```
-
-默认监听 `http://localhost:3501`
-
-### 开发模式
-
-自动监听文件变化并重载：
+For testing and development:
 
 ```bash
 pnpm run dev
 ```
 
-## 🛠️ 可用工具
+This starts the server in HTTP mode on `http://localhost:3501`
+
+### Development Mode
+
+With auto-reload on file changes:
+
+```bash
+pnpm run dev
+```
+
+## 🛠️ Available Tools
 
 ### gui-input
 
-弹出带终端的 GUI 对话框收集用户输入。
+Opens a GUI dialog to collect user input with terminal support.
 
-**参数：**
+**Parameters:**
 
-| 参数名  | 说明           | 可选 | 默认值 |
-| ------- | -------------- | ---- | ------ |
-| prompt  | 提示文本       | ✓    | -      |
-| title   | 窗口标题       | ✓    | -      |
-| timeout | 超时时间（秒） | ✓    | 300    |
+- `prompt` (optional): Text to show the user
+- `title` (optional): Window title
+- `timeout` (optional): Timeout in seconds (default: 300)
 
-**示例：**
+**Example:**
 
 ```javascript
 await mcpClient.callTool("gui-input", {
-  prompt: "请填写您对系统的反馈",
-  title: "系统反馈",
+  prompt: "Please provide your feedback on the system",
+  title: "System Feedback",
   timeout: 600,
 });
 ```
 
-**返回示例：**
+**Returns:**
 
 ```
 User input received:
 Type: text
-Content: [用户输入]
-Command logs: [终端命令日志]
+Content: [user's input]
+Command logs: [terminal commands executed]
 Timestamp: 2024-01-01T12:00:00.000Z
 ```
 
-## 🖥️ 终端特性
+## 🖥️ Terminal Features
 
-- **持久 Shell**：同一会话内保持状态（如 `cd`、环境变量）
-- **默认家目录**：初始目录为用户主目录
-- **完整命令支持**：可运行全部 Linux/Unix 命令
-- **智能滚动**：选择文本时自动暂停滚动
-- **粘贴优化**：复制文本干净、无干扰
+- **Persistent Shell**: Commands maintain state (cd, environment variables work)
+- **Home Directory Start**: Automatically starts in user's home directory
+- **All Commands Supported**: Full Linux/Unix command support
+- **Smart Scrolling**: Auto-scroll pauses during text selection
+- **Copy-Paste Optimized**: Clean selection without interference
 
-## 🎨 界面设计
+## 🎨 Interface
 
-- **Interactive Feedback 风格**：简洁专业的深色主题
-- **可折叠终端**：实时显示命令输出
-- **用户输入区**：大尺寸文本框便于输入
-- **会话自动管理**：空闲 5 分钟自动失效
+The GUI features a modern dark theme with:
 
-## 📁 项目结构
+- **Interactive Feedback Style**: Clean, professional design
+- **Collapsible Terminal**: Execute commands with real-time output
+- **User Input Area**: Large text area for feedback
+- **Session Management**: Automatic session handling
+
+## 📁 Project Structure
 
 ```
 mcp-gui-server/
 ├── src/
-│   ├── server.ts         # 主服务器实现
-│   ├── gui-service.ts    # GUI 与终端服务
-│   └── client-example.ts # HTTP 客户端示例
-├── dist/                 # 编译后的 JS
+│   ├── server.ts         # Main MCP server implementation
+│   ├── gui-service.ts    # GUI service with terminal support
+│   └── client-example.ts # HTTP client example
+├── dist/                 # Compiled JavaScript
 ├── package.json
 ├── tsconfig.json
 └── README.md
 ```
 
-## ⚙️ 配置
+## ⚙️ Configuration
 
-### 环境变量
+### Environment Variables
 
-| 变量名    | 说明                            | 默认 |
-| --------- | ------------------------------- | ---- |
-| GUI_PORT  | GUI 服务端口                    | 3501 |
-| MCP_STDIO | 设为 `"true"` 时强制 Stdio 模式 | -    |
+- `GUI_PORT`: Port for GUI server (default: 3501)
+- `MCP_STDIO`: Force stdio mode when set to "true"
 
-### 命令行参数
+### Command Line Arguments
 
-- `--stdio`：以 Stdio 模式运行
-- `--dev`：开发模式（自动重载）
+- `--stdio`: Run in stdio mode
+- `--dev`: Development mode with auto-reload
 
-### npm Script
+### Available Scripts
 
-| 命令             | 功能                    |
-| ---------------- | ----------------------- |
-| `pnpm start`     | 运行编译后的服务器      |
-| `pnpm run dev`   | 开发模式（HTTP+热重载） |
-| `pnpm run build` | TypeScript → JavaScript |
-| `pnpm run stdio` | 源码直接运行 Stdio 模式 |
+- `pnpm start`: Run the compiled server
+- `pnpm run dev`: Development mode with auto-reload
+- `pnpm run build`: Build TypeScript to JavaScript
+- `pnpm run stdio`: Run in stdio mode directly from source
 
-## 🔒 安全
+## 🔒 Security
 
-- **会话校验**：所有 GUI 访问均需有效会话令牌
-- **自动清理**：会话 5 分钟无操作即失效
-- **进程隔离**：终端命令在独立 Shell 中运行
-- **安全默认**：启动目录为用户主目录，环境安全
+- **Session Validation**: All GUI access requires valid session tokens
+- **Automatic Cleanup**: Sessions expire after 5 minutes of inactivity
+- **Process Isolation**: Terminal commands run in isolated shell processes
+- **Safe Defaults**: Starts in user's home directory with standard environment
 
-## 🐛 故障排查
+## 🐛 Troubleshooting
 
-### 端口被占用
+### Port Already in Use
+
+The server automatically finds an available port when the default (3501) is occupied:
 
 ```
-⚠️ 端口 3501 被占用，正在查找可用端口...
-✅ 已找到可用端口：3517
+⚠️ Port 3501 is in use, searching for available port...
+✅ Found available port: 3517
 ```
 
-### 会话过期
+### Session Expired
 
-若出现 “Session Invalid or Expired”：
+If you see "Session Invalid or Expired":
 
-1. 不要直接访问 GUI URL
-2. 通过 MCP 客户端调用 `gui-input`
-3. 确认 5 分钟会话超时是否已到
+1. Don't access GUI URLs directly
+2. Use the `gui-input` tool in your MCP client
+3. Check if the session timeout (5 minutes) was exceeded
 
-### 终端命令无效
+### Terminal Commands Not Working
 
-- 确保 Shell 已正确初始化
-- 命令需为标准 Unix/Linux 命令
-- 初始目录为 `~`
+Ensure the shell process is properly initialized:
 
-## 🤝 贡献方式
+- Commands maintain state in persistent shell
+- Use standard Unix/Linux commands
+- Terminal starts in home directory (~)
 
-1. Fork 本仓库
-2. 创建分支：`git checkout -b feature-name`
-3. 实现功能并提交代码
-4. 安装依赖：`pnpm install`
-5. 构建项目：`pnpm run build`
-6. 发起 Pull Request
+## 🤝 Contributing
 
-## 📄 许可证
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Make your changes
+4. Install dependencies: `pnpm install`
+5. Build: `pnpm run build`
+6. Submit a pull request
 
-MIT License – 详见 LICENSE 文件
+## 📄 License
 
-## 🔗 相关项目
+MIT License - see LICENSE file for details
+
+## 💡 Inspiration
+
+This project is inspired by and builds upon:
+
+- [Interactive Feedback MCP](https://github.com/noopstudios/interactive-feedback-mcp) - The original Interactive Feedback MCP implementation that inspired our UI design and human-in-the-loop workflow
+
+## 🔗 Related Projects
 
 - [Model Context Protocol](https://github.com/modelcontextprotocol/specification)
 - [Interactive Feedback MCP](https://github.com/noopstudios/interactive-feedback-mcp)
 
-## 📞 技术支持
+## 📞 Support
 
-如有问题或需求，请通过 GitHub Issue 反馈。
+For issues and feature requests, please use the GitHub issue tracker.
 
 ---
 
-**注意**：本服务器需配合兼容 MCP 的客户端使用。GUI 接口依赖会话管理，不应直接通过浏览器 URL 访问。
+**Note**: This server is designed to work with MCP-compatible clients. The GUI interface requires proper session management and should not be accessed directly via browser URLs.
