@@ -531,7 +531,7 @@ export class GuiService {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${title || "Interactive Feedback"}</title>
+    <title>${title || "GUI Input"}</title>
     <style>
         * {
             box-sizing: border-box;
@@ -757,7 +757,7 @@ export class GuiService {
     <div class="container">
         <div class="header">
             <div class="title">
-                🖥️ Interactive Feedback
+                🖥️ GUI Input
             </div>
 
         </div>
