@@ -1,0 +1,61 @@
+{
+  "name": "mcp-gui-server",
+  "version": "1.0.0",
+  "description": "A Model Context Protocol (MCP) server that provides graphical user interface interaction capabilities with Interactive Feedback style and terminal support",
+  "author": "oqwn",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/server.js",
+  "bin": {
+    "mcp-gui-server": "dist/server.js"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "gui",
+    "interactive",
+    "terminal",
+    "feedback",
+    "ai-tools"
+  ],
+  "homepage": "https://github.com/oqwn/mcp-gui-server#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oqwn/mcp-gui-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/oqwn/mcp-gui-server/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts",
+    "stdio": "tsx src/server.ts",
+    "client-example": "tsx src/client-example.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "chalk": "^5.4.1",
+    "express": "^5.0.1",
+    "inquirer": "^12.6.3",
+    "open": "^10.0.3",
+    "prompt-sync": "^4.2.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.2",
+    "tsx": "^4.16.5",
+    "typescript": "^5.5.4"
+  }
+}

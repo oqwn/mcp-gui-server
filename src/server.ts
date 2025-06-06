@@ -1,0 +1,138 @@
+#!/usr/bin/env node
+
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { z } from "zod";
+import { GuiService } from "./gui-service.js";
+import chalk from "chalk";
+
+// Detect runtime environment
+const isStdioMode =
+  process.argv.includes("--stdio") || process.env.MCP_STDIO === "true";
+const port = parseInt(process.env.GUI_PORT || "3501");
+
+const guiService = new GuiService(port);
+
+// Create MCP server
+const server = new McpServer(
+  {
+    name: "MCP GUI Server",
+    version: "1.0.0",
+  },
+  {
+    capabilities: {
+      tools: {},
+    },
+  }
+);
+
+// Register GUI input tool (Interactive Feedback MCP style)
+server.tool(
+  "gui-input",
+  "Opens a GUI dialog to collect user input with terminal support and Interactive Feedback style",
+  {
+    prompt: z.string().describe("Prompt text to show the user").optional(),
+    title: z.string().describe("Title for the GUI window").optional(),
+    timeout: z
+      .number()
+      .describe("Timeout in seconds (default: 300)")
+      .optional(),
+  },
+  async ({
+    prompt = "Please provide your input",
+    title = "GUI Input",
+    timeout = 300,
+  }) => {
+    try {
+      if (isStdioMode) {
+        console.error(chalk.blue(`🎯 GUI Input: "${prompt}"`));
+      } else {
+        console.log(chalk.blue(`🎯 GUI Input: "${prompt}"`));
+      }
+
+      const result = await guiService.openGuiAndWaitForInput(
+        prompt,
+        title,
+        timeout * 1000
+      );
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `User input received:
+Type: ${result.type || "text"}
+Content: ${result.interactive_feedback || result.input}
+Command logs: ${result.command_logs || "No commands executed"}
+Timestamp: ${result.timestamp || new Date().toISOString()}`,
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+);
+
+// Start server
+async function main() {
+  // Start GUI service (automatically handles port conflicts)
+  await guiService.start();
+
+  // Get actual port used
+  const actualPort = guiService.getPort();
+
+  if (isStdioMode) {
+    // Stdio mode - output info via stderr, keep stdout clean for JSON-RPC
+    const transport = new StdioServerTransport();
+
+    console.error(
+      chalk.green("🖥️  MCP GUI Server started successfully! (Stdio mode)")
+    );
+    console.error(chalk.cyan("- Using Interactive Feedback style interface"));
+    console.error(chalk.cyan(`- GUI server running on port ${actualPort}`));
+    console.error(chalk.yellow("- Tool: gui-input (with terminal support)"));
+
+    await server.connect(transport);
+  } else {
+    // Non-Stdio mode
+    console.log(chalk.green("🖥️  MCP GUI Server started successfully!"));
+    console.log(chalk.cyan(`- GUI server running on port ${actualPort}`));
+    console.log(chalk.yellow("- Tool: gui-input (with terminal support)"));
+    console.log(
+      chalk.blue("- Can test via HTTP client or configure in MCP client")
+    );
+
+    // Keep process running
+    await new Promise(() => {});
+  }
+}
+
+// Error handling
+process.on("SIGINT", () => {
+  console.error(chalk.yellow("\n👋 Shutting down server..."));
+  guiService.stop();
+  process.exit(0);
+});
+
+process.on("SIGTERM", () => {
+  console.error(chalk.yellow("\n👋 Shutting down server..."));
+  guiService.stop();
+  process.exit(0);
+});
+
+// Start server
+main().catch((error) => {
+  console.error(chalk.red("❌ Server startup failed:"), error);
+  process.exit(1);
+});
