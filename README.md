@@ -25,8 +25,8 @@ npm install -g pnpm
 
 ```bash
 # Clone the repository
-git clone https://github.com/oqwn/mcp-gui-server.git
-cd mcp-gui-server
+git clone https://github.com/oqwn/optimized-request.git
+cd optimized-request
 
 # Install dependencies (using pnpm)
 pnpm install
@@ -81,7 +81,7 @@ Keep calling MCP until the user’s feedback is empty, then end the request.
 ## 📁 Project Structure
 
 ```
-mcp-gui-server/
+optimized-request/
 ├── src/
 │   ├── server.ts         # Main MCP server implementation
 │   ├── gui-service.ts    # GUI service with terminal support
