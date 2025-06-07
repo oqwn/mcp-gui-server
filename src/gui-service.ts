@@ -21,11 +21,20 @@ export class GuiService {
   private guiSessions = new Map<string, GuiSession>();
   private server: any;
   private port: number;
+  private isStdioMode: boolean;
 
-  constructor(port: number = 3501) {
+  constructor(port: number = 3501, isStdioMode: boolean = false) {
     this.port = port;
+    this.isStdioMode = isStdioMode;
     this.server = this.createGuiServer();
     this.startCleanupTimer();
+  }
+
+  // Safe logging method that respects stdio mode
+  private log(message: string): void {
+    if (!this.isStdioMode) {
+      console.error(message);
+    }
   }
 
   // Check if port is available
@@ -991,10 +1000,10 @@ export class GuiService {
 
       // Open browser to GUI
       const guiUrl = `http://localhost:${this.port}/gui?session=${sessionId}`;
-      console.error(`Opening GUI: ${guiUrl}`);
+      this.log(`Opening GUI: ${guiUrl}`);
 
       open(guiUrl).catch((error: any) => {
-        console.error("Failed to open browser:", error);
+        this.log("Failed to open browser: " + error);
         this.guiSessions.delete(sessionId);
         reject(new Error("Failed to open GUI"));
       });
@@ -1014,24 +1023,24 @@ export class GuiService {
     const originalPort = this.port;
 
     if (!(await this.isPortAvailable(this.port))) {
-      console.error(
+      this.log(
         `⚠️  Port ${this.port} is in use, searching for available port...`
       );
 
       try {
         this.port = await this.findAvailablePort(originalPort, 50);
-        console.error(`✅ Found available port: ${this.port}`);
+        this.log(`✅ Found available port: ${this.port}`);
       } catch (error) {
-        console.error(`❌ Port allocation failed: ${error}`);
+        this.log(`❌ Port allocation failed: ${error}`);
         throw error;
       }
     }
 
     return new Promise((resolve, reject) => {
       this.server.listen(this.port, () => {
-        console.error(`🚀 GUI server started successfully, port: ${this.port}`);
+        this.log(`🚀 GUI server started successfully, port: ${this.port}`);
         if (this.port !== originalPort) {
-          console.error(
+          this.log(
             `📍 Notice: Port automatically adjusted from ${originalPort} to ${this.port}`
           );
         }
@@ -1039,7 +1048,7 @@ export class GuiService {
       });
 
       this.server.on("error", (error: any) => {
-        console.error(`❌ GUI server startup failed:`, error);
+        this.log(`❌ GUI server startup failed: ${error}`);
         reject(error);
       });
     });

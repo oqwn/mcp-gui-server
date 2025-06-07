@@ -40,8 +40,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "tsx watch src/server.ts",
-    "stdio": "tsx src/server.ts",
-    "client-example": "tsx src/client-example.ts"
+    "stdio": "tsx src/server.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",

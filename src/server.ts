@@ -6,12 +6,19 @@ import { z } from "zod";
 import { GuiService } from "./gui-service.js";
 import chalk from "chalk";
 
-// Detect runtime environment
+// Detect runtime environment more strictly
 const isStdioMode =
-  process.argv.includes("--stdio") || process.env.MCP_STDIO === "true";
+  process.argv.includes("--stdio") ||
+  process.env.MCP_STDIO === "true" ||
+  // Check if being run by MCP inspector
+  process.argv.some((arg) => arg.includes("inspector")) ||
+  // Check if parent process is node with inspector-related args
+  !!(process.env._ && process.env._.includes("inspector"));
+
 const port = parseInt(process.env.GUI_PORT || "3501");
 
-const guiService = new GuiService(port);
+// Pass stdio mode info to GUI service to suppress console output
+const guiService = new GuiService(port, isStdioMode);
 
 // Create MCP server
 const server = new McpServer(
