@@ -53,7 +53,7 @@ npm install -g pnpm
 
 ### Step 1: Configure Your MCP Client
 
-Add the following configuration to your MCP client (Claude Desktop, Cursor, Windsurf, etc.), Remember add the model only if you would like a ai model to merify your result:
+Add the following configuration to your MCP client (Claude Desktop, Cursor, Windsurf, etc.), Remember add the model only if you would like a ai model to enhance prompt:
 
 #### Using NPX (Recommended)
 
