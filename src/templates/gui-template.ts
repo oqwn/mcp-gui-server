@@ -74,7 +74,7 @@ export class GuiTemplate {
                     <input type="file" id="imageInput" accept="image/*" multiple style="display: none;">
                     
                     <div class="button-group">
-                        <button type="button" class="upload-btn" onclick="openFileDialog()" title="upload images">📷</button>
+                        <button type="button" class="upload-btn" onclick="openFileDialog()" title="Upload images (JPG, PNG, GIF, WebP - Max 10MB each)">📷</button>
                         <button type="button" class="enhance-btn" onclick="enhancePrompt()" title="prompt augumentation">✨</button>
                         <button type="submit" class="submit-btn" title="submit your feedback">📤 Submit</button>
                     </div>
@@ -650,6 +650,32 @@ export class GuiTemplate {
         .upload-btn:hover {
             transform: translateY(-2px) scale(1.05);
             box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+        }
+        .upload-btn[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+            pointer-events: none;
+        }
+        .upload-btn[title]:hover::before {
+            content: '';
+            position: absolute;
+            bottom: 110%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            pointer-events: none;
         }
         .enhance-btn {
             background: linear-gradient(135deg, #8b5cf6, #7c3aed);
