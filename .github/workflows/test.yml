@@ -9,6 +9,7 @@ on:
       - "package.json"
       - "tsconfig.json"
       - ".github/workflows/**"
+  workflow_dispatch:
 
 jobs:
   test:

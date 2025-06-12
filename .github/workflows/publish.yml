@@ -8,6 +8,7 @@ on:
       - "prompts/**"
       - "package.json"
       - "tsconfig.json"
+  workflow_dispatch:
 
 jobs:
   publish:
