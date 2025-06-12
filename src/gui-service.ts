@@ -37,6 +37,52 @@ export class GuiService {
     }
   }
 
+  // Simple Markdown to HTML converter
+  private markdownToHtml(markdown: string): string {
+    if (!markdown) return "";
+
+    let html = markdown
+      // Headers
+      .replace(/^### (.*$)/gim, "<h3>$1</h3>")
+      .replace(/^## (.*$)/gim, "<h2>$1</h2>")
+      .replace(/^# (.*$)/gim, "<h1>$1</h1>")
+      // Bold
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+      .replace(/__(.*?)__/g, "<strong>$1</strong>")
+      // Italic
+      .replace(/\*(.*?)\*/g, "<em>$1</em>")
+      .replace(/_(.*?)_/g, "<em>$1</em>")
+      // Code inline
+      .replace(/`(.*?)`/g, "<code>$1</code>")
+      // Links
+      .replace(
+        /\[([^\]]+)\]\(([^\)]+)\)/g,
+        '<a href="$2" target="_blank">$1</a>'
+      )
+      // Line breaks
+      .replace(/\n\n/g, "</p><p>")
+      .replace(/\n/g, "<br>")
+      // Lists (simple implementation)
+      .replace(/^\- (.*$)/gim, "<li>$1</li>")
+      .replace(/^\* (.*$)/gim, "<li>$1</li>")
+      .replace(/^(\d+)\. (.*$)/gim, "<li>$1. $2</li>");
+
+    // Wrap in paragraph tags if needed
+    if (
+      !html.includes("<h1>") &&
+      !html.includes("<h2>") &&
+      !html.includes("<h3>")
+    ) {
+      html = "<p>" + html + "</p>";
+    }
+
+    // Clean up list formatting
+    html = html.replace(/(<li>.*<\/li>)/gs, "<ul>$1</ul>");
+    html = html.replace(/<\/ul>\s*<ul>/g, "");
+
+    return html;
+  }
+
   // Check if port is available
   private async isPortAvailable(port: number): Promise<boolean> {
     return new Promise((resolve) => {
@@ -598,6 +644,62 @@ export class GuiService {
             line-height: 1.6;
             font-size: 16px;
         }
+        .prompt-text h1 {
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0 0 16px 0;
+            border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+            padding-bottom: 8px;
+        }
+        .prompt-text h2 {
+            color: #e5e7eb;
+            font-size: 20px;
+            font-weight: 600;
+            margin: 16px 0 12px 0;
+        }
+        .prompt-text h3 {
+            color: #d1d5db;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 12px 0 8px 0;
+        }
+        .prompt-text strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+        .prompt-text em {
+            color: #bfdbfe;
+            font-style: italic;
+        }
+        .prompt-text code {
+            background: rgba(0, 0, 0, 0.3);
+            color: #fbbf24;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 14px;
+        }
+        .prompt-text a {
+            color: #60a5fa;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(96, 165, 250, 0.3);
+        }
+        .prompt-text a:hover {
+            color: #93c5fd;
+            border-bottom-color: rgba(147, 197, 253, 0.6);
+        }
+        .prompt-text ul {
+            margin: 12px 0;
+            padding-left: 24px;
+        }
+        .prompt-text li {
+            margin: 4px 0;
+            color: #d1d5db;
+        }
+        .prompt-text p {
+            margin: 12px 0;
+        }
         .main-content {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -775,7 +877,7 @@ export class GuiService {
           prompt
             ? `
         <div class="prompt-section">
-            <div class="prompt-text">${prompt}</div>
+            <div class="prompt-text">${this.markdownToHtml(prompt)}</div>
         </div>
         `
             : ""
