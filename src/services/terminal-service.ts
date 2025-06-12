@@ -108,15 +108,22 @@ export class TerminalService {
       throw new Error("Shell not ready");
     }
 
+    // Normalize the command first (handle multi-line commands)
+    const normalizedCommand = command
+      .replace(/\\\s+/g, " ") // Remove backslashes followed by spaces (common in pasted multi-line commands)
+      .replace(/\\\s*[\r\n]+\s*/g, " ") // Remove line breaks and backslashes
+      .replace(/\s+/g, " ") // Normalize whitespace
+      .trim();
+
     // Add command to logs (with prompt-like format)
-    session.commandLogs!.push(`$ ${command}\n`);
+    session.commandLogs!.push(`$ ${normalizedCommand}\n`);
 
-    // Check if this is a curl command that needs clean output
-    const isCurlCommand = command.trim().startsWith("curl");
+    // Check if this is an HTTP request command that needs clean output
+    const isHttpCommand = this.isHttpRequestCommand(normalizedCommand);
 
-    if (isCurlCommand) {
-      // For curl commands, modify to use silent mode and clean output
-      const cleanCommand = this.cleanCurlCommand(command);
+    if (isHttpCommand) {
+      // For HTTP request commands, modify to use clean output mode
+      const cleanCommand = this.cleanHttpCommand(normalizedCommand);
 
       if (session.shellProcess.stdin) {
         session.shellProcess.stdin.write(`${cleanCommand}\n`);
@@ -124,74 +131,112 @@ export class TerminalService {
     } else {
       // Send command to persistent shell as normal
       if (session.shellProcess.stdin) {
-        session.shellProcess.stdin.write(`${command}\n`);
+        session.shellProcess.stdin.write(`${normalizedCommand}\n`);
       }
     }
   }
 
   /**
-   * Clean curl command to remove verbose output and extract meaningful content
+   * Check if a command is an HTTP request command
    */
-  private static cleanCurlCommand(command: string): string {
-    // Remove existing curl flags that cause verbose output
-    let cleanCommand = command
-      .replace(/curl\s+(-[^s]*\s+)?/, "curl -s ") // Add silent flag, remove other flags
-      .replace(/\\\s*\n\s*/g, " ") // Remove line breaks and backslashes
-      .replace(/\s+/g, " ") // Normalize whitespace
-      .trim();
+  private static isHttpRequestCommand(command: string): boolean {
+    const trimmedCommand = command.trim().toLowerCase();
 
-    // If the URL contains /hello/test1 or similar JSON endpoints, add JSON parsing
-    if (
-      cleanCommand.includes("/hello/test1") ||
-      cleanCommand.includes("/hello/")
-    ) {
-      // Check if it's a JSON endpoint by looking for common patterns
-      if (
-        cleanCommand.includes("/hello/test") ||
-        cleanCommand.match(/\/hello\/\w+/)
-      ) {
-        cleanCommand += ` | grep -o '"message":"[^"]*"' | cut -d'"' -f4 2>/dev/null || cat`;
+    // Check for common HTTP request tools
+    return (
+      trimmedCommand.startsWith("curl ") ||
+      trimmedCommand.startsWith("wget ") ||
+      trimmedCommand.startsWith("http ") || // HTTPie
+      trimmedCommand.startsWith("https ") || // HTTPie
+      trimmedCommand.startsWith("httpie ") ||
+      trimmedCommand.startsWith("fetch ") ||
+      // Check for URLs in the command (basic heuristic)
+      /https?:\/\//.test(command)
+    );
+  }
+
+  /**
+   * Clean HTTP request command to remove verbose output
+   */
+  private static cleanHttpCommand(command: string): string {
+    const trimmedCommand = command.trim();
+    let cleanCommand = command;
+
+    // Apply tool-specific optimizations for clean output
+    if (trimmedCommand.toLowerCase().startsWith("curl ")) {
+      // For curl: add silent flag and ensure we show response regardless of HTTP status
+      cleanCommand = cleanCommand.replace(/^curl\s+/, "curl -sS ");
+
+      // Remove any existing -s or -S flags to avoid duplication
+      cleanCommand = cleanCommand.replace(/\s+-s+\s+/g, " ");
+      cleanCommand = cleanCommand.replace(/\s+-S+\s+/g, " ");
+
+      // Ensure we have the right flags
+      if (!cleanCommand.includes("-sS")) {
+        cleanCommand = cleanCommand.replace(/^curl\s+/, "curl -sS ");
       }
+    } else if (trimmedCommand.toLowerCase().startsWith("wget ")) {
+      // For wget: add quiet flag
+      if (!cleanCommand.includes("-q") && !cleanCommand.includes("--quiet")) {
+        cleanCommand = cleanCommand.replace("wget ", "wget -q ");
+      }
+    } else if (
+      trimmedCommand.toLowerCase().startsWith("http ") ||
+      trimmedCommand.toLowerCase().startsWith("https ")
+    ) {
+      // HTTPie is already clean by default, just normalize
+      // No additional flags needed
     }
 
+    // Debug logging (only in debug mode to avoid spam)
+    if (process.env.MCP_DEBUG === "true") {
+      console.error("Original command:", JSON.stringify(command));
+      console.error("Clean command:", JSON.stringify(cleanCommand));
+    }
     return cleanCommand;
   }
 
   /**
-   * Clean terminal output to remove curl progress bars and verbose information
+   * Clean terminal output to remove HTTP tool progress bars and verbose information
    */
   private static cleanTerminalOutput(output: string): string {
-    // Filter out curl progress bars and verbose output
+    // Be very conservative - only remove obvious progress indicators
+    // Preserve all actual content
+
     const lines = output.split("\n");
     const cleanLines = lines.filter((line) => {
-      // Remove curl progress bars (lines with % Total % Received etc.)
+      // Only remove very specific curl progress patterns
+      // Remove lines that are clearly progress bars with percentages and transfer data
       if (
-        line.includes("% Total") ||
-        line.includes("% Received") ||
+        line.includes("% Total") &&
+        line.includes("% Received") &&
         line.includes("% Xferd")
       ) {
         return false;
       }
 
-      // Remove curl progress data lines (numbers and dashes)
-      if (/^\s*\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+/.test(line)) {
+      // Remove lines that are clearly transfer statistics (all numbers and dashes)
+      if (
+        /^\s*\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+--:--:--\s+--:--:--\s+--:--:--/.test(
+          line
+        )
+      ) {
         return false;
       }
 
-      // Remove curl error messages about malformed URLs (common with multi-line commands)
-      if (line.includes("curl: (3) URL rejected: Malformed input")) {
-        return false;
-      }
-
-      // Remove empty lines that are just whitespace
-      if (line.trim() === "") {
-        return false;
-      }
-
+      // Keep everything else - including short responses, JSON, error messages, etc.
       return true;
     });
 
-    return cleanLines.join("\n");
+    let result = cleanLines.join("\n");
+
+    // Only remove trailing % if it's at the very end and likely from curl
+    if (result.endsWith("%\n") || result.endsWith("%")) {
+      result = result.replace(/%\s*$/, "");
+    }
+
+    // Ensure we return something if we have content
+    return result;
   }
 
   /**
