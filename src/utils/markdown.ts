@@ -1,5 +1,7 @@
 /**
- * Enhanced Markdown to HTML converter with proper code block support
+ * Enhanced Markdown to HTML conversion utilities
+ * Supports syntax highlighting and professional rendering
+ * Updated: Added GitHub Actions auto-publishing test
  */
 export class MarkdownConverter {
   static toHtml(markdown: string): string {
