@@ -1,0 +1,142 @@
+name: Auto Publish to NPM
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "prompts/**"
+      - "package.json"
+      - "tsconfig.json"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build project
+        run: pnpm run build
+
+      - name: Run tests (if available)
+        run: pnpm test --if-present
+
+      - name: Configure git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Check if version bump needed
+        id: version_check
+        run: |
+          # Get current version from package.json
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
+          # Check if this version already exists on npm
+          if npm view mcp-gui-server@$CURRENT_VERSION version > /dev/null 2>&1; then
+            echo "Version $CURRENT_VERSION already exists on npm, bumping patch version"
+            echo "needs_bump=true" >> $GITHUB_OUTPUT
+          else
+            echo "Version $CURRENT_VERSION is new, no bump needed"
+            echo "needs_bump=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Bump version if needed
+        if: steps.version_check.outputs.needs_bump == 'true'
+        run: |
+          npm version patch --no-git-tag-version
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "Bumped version to $NEW_VERSION"
+
+          # Commit the version change
+          git add package.json
+          git commit -m "Auto-bump version to $NEW_VERSION [skip ci]"
+          git push origin main
+
+      - name: Get final version
+        id: final_version
+        run: |
+          FINAL_VERSION=$(node -p "require('./package.json').version")
+          echo "final_version=$FINAL_VERSION" >> $GITHUB_OUTPUT
+          echo "Final version: $FINAL_VERSION"
+
+      - name: Publish to npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create Git tag
+        run: |
+          VERSION=${{ steps.final_version.outputs.final_version }}
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.final_version.outputs.final_version }}
+          release_name: Release v${{ steps.final_version.outputs.final_version }}
+          body: |
+            ## Changes in v${{ steps.final_version.outputs.final_version }}
+
+            🤖 **Auto-published by GitHub Actions**
+
+            ### Updated Components:
+            - 📁 Source code changes in `src/` folder
+            - 🧠 Prompt engineering updates in `prompts/` folder
+            - 🏗️ Build and configuration improvements
+
+            ### Installation:
+            ```bash
+            npx mcp-gui-server@latest
+            ```
+
+            ### Usage:
+            Add to your MCP client configuration:
+            ```json
+            {
+              "mcpServers": {
+                "mcp-gui-server": {
+                  "command": "npx",
+                  "args": ["-y", "mcp-gui-server"],
+                  "env": {
+                    "OPENROUTER_API_KEY": "your-api-key",
+                    "OPENROUTER_BASE_URL": "https://openrouter.ai/api/v1",
+                    "OPENROUTER_MODEL": "anthropic/claude-3.5-sonnet"
+                  }
+                }
+              }
+            }
+            ```
+
+            **Full documentation:** [README.md](README.md)
+          draft: false
+          prerelease: false
+
+      - name: Notify success
+        run: |
+          echo "🎉 Successfully published mcp-gui-server@${{ steps.final_version.outputs.final_version }} to npm!"
+          echo "📦 Package available at: https://www.npmjs.com/package/mcp-gui-server"
+          echo "🚀 Install with: npx mcp-gui-server@latest"
