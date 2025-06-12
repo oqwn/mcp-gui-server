@@ -62,7 +62,7 @@ npm install -g pnpm
   "mcpServers": {
     "mcp-gui-server": {
       "command": "npx",
-      "args": ["mcp-gui-server", "--stdio"],
+      "args": ["-y", "mcp-gui-server"],
       "env": {
         "OPENROUTER_API_KEY": "YOUR API KEY",
         "OPENROUTER_BASE_URL": "https://openrouter.ai/api/v1",
