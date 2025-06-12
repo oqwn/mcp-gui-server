@@ -70,7 +70,7 @@ export class SubmitHandler extends BaseHandler {
         message: "Input submitted successfully",
       });
     } catch (error: any) {
-      console.error("Error processing GUI input:", error);
+      this.log(`Error processing GUI input: ${error}`);
       this.sendErrorResponse(
         res,
         500,

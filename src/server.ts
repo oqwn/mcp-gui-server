@@ -17,7 +17,10 @@ const isStdioMode =
   // Check if being run by MCP inspector
   process.argv.some((arg) => arg.includes("inspector")) ||
   // Check if parent process is node with inspector-related args
-  !!(process.env._ && process.env._.includes("inspector"));
+  !!(process.env._ && process.env._.includes("inspector")) ||
+  // Check if process is being piped (stdin/stdout redirected)
+  !process.stdin.isTTY ||
+  !process.stdout.isTTY;
 
 const port = parseInt(process.env.GUI_PORT || "3501");
 
@@ -55,9 +58,10 @@ server.tool(
     timeout = 300,
   }) => {
     try {
-      if (isStdioMode) {
+      // Only log GUI input in debug mode when in stdio
+      if (isStdioMode && process.env.MCP_DEBUG === "true") {
         console.error(chalk.blue(`🎯 GUI Input: "${prompt}"`));
-      } else {
+      } else if (!isStdioMode) {
         console.log(chalk.blue(`🎯 GUI Input: "${prompt}"`));
       }
 
@@ -104,15 +108,18 @@ async function main() {
   const actualPort = guiService.getPort();
 
   if (isStdioMode) {
-    // Stdio mode - output info via stderr, keep stdout clean for JSON-RPC
+    // Stdio mode - completely suppress output to avoid any JSON-RPC corruption
     const transport = new StdioServerTransport();
 
-    console.error(
-      chalk.green("🖥️  MCP GUI Server started successfully! (Stdio mode)")
-    );
-    console.error(chalk.cyan("- Using Interactive Feedback style interface"));
-    console.error(chalk.cyan(`- GUI server running on port ${actualPort}`));
-    console.error(chalk.yellow("- Tool: gui-input (with terminal support)"));
+    // Only output to stderr if absolutely necessary and safe
+    if (process.env.MCP_DEBUG === "true") {
+      console.error(
+        chalk.green("🖥️  MCP GUI Server started successfully! (Stdio mode)")
+      );
+      console.error(chalk.cyan("- Using Interactive Feedback style interface"));
+      console.error(chalk.cyan(`- GUI server running on port ${actualPort}`));
+      console.error(chalk.yellow("- Tool: gui-input (with terminal support)"));
+    }
 
     await server.connect(transport);
   } else {

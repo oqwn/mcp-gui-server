@@ -61,6 +61,7 @@ export class GuiService {
    * Safe logging method that respects stdio mode
    */
   private log(message: string): void {
+    // In stdio mode, suppress all output to avoid corrupting JSON-RPC
     if (!this.isStdioMode) {
       console.error(message);
     }
