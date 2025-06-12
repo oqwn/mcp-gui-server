@@ -21,11 +21,26 @@ export class CommandHandler extends BaseHandler {
       }
 
       // Initialize shell session if not already done
-      TerminalService.initializeShellSession(session);
+      try {
+        await TerminalService.initializeShellSession(session);
+      } catch (error) {
+        this.sendErrorResponse(
+          res,
+          500,
+          `Shell initialization failed: ${
+            error instanceof Error ? error.message : String(error)
+          }`
+        );
+        return;
+      }
 
-      // Check if shell is ready
+      // Shell should be ready now
       if (!session.shellProcess || !session.shellReady) {
-        this.sendErrorResponse(res, 400, "Shell not ready");
+        this.sendErrorResponse(
+          res,
+          400,
+          "Shell not ready after initialization"
+        );
         return;
       }
 
