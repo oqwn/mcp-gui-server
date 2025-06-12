@@ -59,26 +59,26 @@ export class GuiTemplate {
                     💬 Your Feedback
                 </div>
                 <form id="feedbackForm" enctype="multipart/form-data">
-                    <textarea class="feedback-textarea" id="feedbackText" placeholder="Enter your feedback here..." required></textarea>
-                    
-                    <div class="image-upload-section">
-                        <div class="upload-title">📷 Image Upload (Optional)</div>
-                        <div class="upload-area" id="uploadArea">
-                            <input type="file" id="imageInput" accept="image/*" multiple style="display: none;">
-                            <div class="upload-placeholder">
-                                <div class="upload-icon">📁</div>
-                                <div class="upload-text">Click to select images or drag & drop</div>
-                                <div class="upload-hint">Supports: JPG, PNG, GIF, WebP (Max 10MB each)</div>
+                    <div class="textarea-container">
+                        <textarea class="feedback-textarea" id="feedbackText" placeholder="Enter your feedback here or drag images directly into this area..." required></textarea>
+                        <div class="drag-overlay" id="dragOverlay">
+                            <div class="drag-content">
+                                <div class="drag-icon">📷</div>
+                                <div class="drag-text">Drop images here</div>
                             </div>
                         </div>
-                        <div class="image-preview" id="imagePreview"></div>
                     </div>
                     
+                    <div class="image-preview" id="imagePreview"></div>
+                    
+                    <input type="file" id="imageInput" accept="image/*" multiple style="display: none;">
+                    
                     <div class="button-group">
+                        <button type="button" class="upload-btn" onclick="openFileDialog()" title="upload images">📷</button>
                         <button type="button" class="enhance-btn" onclick="enhancePrompt()" title="prompt augumentation">✨</button>
                         <button type="submit" class="submit-btn" title="submit your feedback">📤 Submit</button>
                     </div>
-                    <div class="shortcut-hint">Press Ctrl+Enter to submit quickly</div>
+                    <div class="shortcut-hint">Press Ctrl+Enter to submit quickly • Drag images into text area or click 📷 to upload</div>
                 </form>
             </div>
         </div>
@@ -569,6 +569,10 @@ export class GuiTemplate {
             align-items: center;
             gap: 8px;
         }
+        .textarea-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
         .feedback-textarea {
             width: 100%;
             background: rgba(20, 20, 20, 0.8);
@@ -581,17 +585,71 @@ export class GuiTemplate {
             line-height: 1.6;
             min-height: 200px;
             resize: vertical;
-            margin-bottom: 20px;
+            transition: all 0.3s ease;
         }
         .feedback-textarea:focus {
             outline: none;
             border-color: #10b981;
             box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
         }
+        .feedback-textarea.drag-over {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        .drag-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(59, 130, 246, 0.9);
+            border-radius: 12px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .drag-overlay.active {
+            display: flex;
+        }
+        .drag-content {
+            text-align: center;
+            color: white;
+        }
+        .drag-icon {
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+        .drag-text {
+            font-size: 18px;
+            font-weight: 600;
+        }
         .button-group {
             display: flex;
             gap: 12px;
             margin-bottom: 20px;
+        }
+        .upload-btn {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 20px;
+            cursor: pointer;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .upload-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
         }
         .enhance-btn {
             background: linear-gradient(135deg, #8b5cf6, #7c3aed);
@@ -673,60 +731,16 @@ export class GuiTemplate {
             text-align: center;
             margin-top: 8px;
         }
-        .image-upload-section {
-            margin: 20px 0;
-        }
-        .upload-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #ffffff;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .upload-area {
-            border: 2px dashed rgba(255, 255, 255, 0.3);
-            border-radius: 12px;
-            padding: 24px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: rgba(20, 20, 20, 0.4);
-            margin-bottom: 16px;
-        }
-        .upload-area:hover {
-            border-color: rgba(59, 130, 246, 0.6);
-            background: rgba(59, 130, 246, 0.1);
-        }
-        .upload-area.dragover {
-            border-color: #3b82f6;
-            background: rgba(59, 130, 246, 0.2);
-            transform: scale(1.02);
-        }
-        .upload-placeholder {
-            pointer-events: none;
-        }
-        .upload-icon {
-            font-size: 32px;
-            margin-bottom: 8px;
-        }
-        .upload-text {
-            color: #e5e5e5;
-            font-size: 16px;
-            font-weight: 500;
-            margin-bottom: 4px;
-        }
-        .upload-hint {
-            color: #9ca3af;
-            font-size: 12px;
-        }
         .image-preview {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
             gap: 12px;
             max-height: 300px;
             overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .image-preview:empty {
+            display: none;
         }
         .image-item {
             position: relative;
@@ -947,36 +961,73 @@ export class GuiTemplate {
         // Image upload functionality
         let uploadedImages = [];
         
+        function openFileDialog() {
+            document.getElementById('imageInput').click();
+        }
+        
         function setupImageUpload() {
-            const uploadArea = document.getElementById('uploadArea');
+            const textArea = document.getElementById('feedbackText');
+            const dragOverlay = document.getElementById('dragOverlay');
             const imageInput = document.getElementById('imageInput');
-            const imagePreview = document.getElementById('imagePreview');
-            
-            // Click to upload
-            uploadArea.addEventListener('click', () => {
-                imageInput.click();
-            });
             
             // File input change
             imageInput.addEventListener('change', (e) => {
                 handleFiles(e.target.files);
             });
             
-            // Drag and drop
-            uploadArea.addEventListener('dragover', (e) => {
+            // Drag and drop on textarea
+            textArea.addEventListener('dragover', (e) => {
                 e.preventDefault();
-                uploadArea.classList.add('dragover');
+                e.stopPropagation();
+                textArea.classList.add('drag-over');
+                dragOverlay.classList.add('active');
             });
             
-            uploadArea.addEventListener('dragleave', (e) => {
+            textArea.addEventListener('dragleave', (e) => {
                 e.preventDefault();
-                uploadArea.classList.remove('dragover');
+                e.stopPropagation();
+                // Only remove if we're leaving the textarea container
+                if (!e.relatedTarget || !textArea.contains(e.relatedTarget)) {
+                    textArea.classList.remove('drag-over');
+                    dragOverlay.classList.remove('active');
+                }
             });
             
-            uploadArea.addEventListener('drop', (e) => {
+            textArea.addEventListener('drop', (e) => {
                 e.preventDefault();
-                uploadArea.classList.remove('dragover');
-                handleFiles(e.dataTransfer.files);
+                e.stopPropagation();
+                textArea.classList.remove('drag-over');
+                dragOverlay.classList.remove('active');
+                
+                const files = Array.from(e.dataTransfer.files).filter(file => 
+                    file.type.startsWith('image/')
+                );
+                
+                if (files.length > 0) {
+                    handleFiles(files);
+                }
+            });
+            
+            // Also handle drag events on the container
+            const container = document.querySelector('.textarea-container');
+            container.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+            
+            container.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                textArea.classList.remove('drag-over');
+                dragOverlay.classList.remove('active');
+                
+                const files = Array.from(e.dataTransfer.files).filter(file => 
+                    file.type.startsWith('image/')
+                );
+                
+                if (files.length > 0) {
+                    handleFiles(files);
+                }
             });
         }
         
