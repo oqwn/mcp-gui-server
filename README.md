@@ -121,6 +121,7 @@ Server will start on `http://localhost:3501` with hot reload.
 ### 🎯 Core Capabilities
 
 - **🖥️ Interactive GUI**: Beautiful, modern web interface for user input
+- **📷 Image Upload Support**: Drag & drop or click to upload images (JPG, PNG, GIF, WebP, max 10MB each)
 - **💻 Terminal Integration**: Execute commands with persistent shell sessions
 - **🔄 Real-time Feedback**: Interactive workflow with user collaboration
 - **🛡️ Session Management**: Secure, auto-expiring sessions with cleanup
@@ -134,6 +135,16 @@ Server will start on `http://localhost:3501` with hot reload.
 - **🌍 Multi-language Support**: Maintains language consistency
 - **⚡ Hot Reloading**: Edit prompts without server restart
 - **📊 Error Handling**: Robust fallbacks and logging
+
+### 📷 Image Upload Features
+
+- **🎯 Intuitive Interface**: Upload button integrated with enhance and submit buttons
+- **🖱️ Drag & Drop**: Drop images directly into the text area for seamless workflow
+- **📁 Multiple Formats**: Supports JPG, JPEG, PNG, GIF, WebP image formats
+- **📏 Size Validation**: Maximum 10MB per image with real-time validation
+- **🖼️ Preview Grid**: Thumbnail previews with file information and remove functionality
+- **🤖 AI Compatible**: Images properly formatted for multimodal AI model analysis
+- **🔒 Secure Processing**: Images converted to base64 and included in MCP responses
 
 ### 🎛️ Optimal AI Assistant Integration
 
