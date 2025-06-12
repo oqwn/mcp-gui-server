@@ -58,8 +58,22 @@ export class GuiTemplate {
                 <div class="feedback-title">
                     💬 Your Feedback
                 </div>
-                <form id="feedbackForm">
+                <form id="feedbackForm" enctype="multipart/form-data">
                     <textarea class="feedback-textarea" id="feedbackText" placeholder="Enter your feedback here..." required></textarea>
+                    
+                    <div class="image-upload-section">
+                        <div class="upload-title">📷 Image Upload (Optional)</div>
+                        <div class="upload-area" id="uploadArea">
+                            <input type="file" id="imageInput" accept="image/*" multiple style="display: none;">
+                            <div class="upload-placeholder">
+                                <div class="upload-icon">📁</div>
+                                <div class="upload-text">Click to select images or drag & drop</div>
+                                <div class="upload-hint">Supports: JPG, PNG, GIF, WebP (Max 10MB each)</div>
+                            </div>
+                        </div>
+                        <div class="image-preview" id="imagePreview"></div>
+                    </div>
+                    
                     <div class="button-group">
                         <button type="button" class="enhance-btn" onclick="enhancePrompt()" title="prompt augumentation">✨</button>
                         <button type="submit" class="submit-btn" title="submit your feedback">📤 Submit</button>
@@ -659,6 +673,111 @@ export class GuiTemplate {
             text-align: center;
             margin-top: 8px;
         }
+        .image-upload-section {
+            margin: 20px 0;
+        }
+        .upload-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(20, 20, 20, 0.4);
+            margin-bottom: 16px;
+        }
+        .upload-area:hover {
+            border-color: rgba(59, 130, 246, 0.6);
+            background: rgba(59, 130, 246, 0.1);
+        }
+        .upload-area.dragover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.2);
+            transform: scale(1.02);
+        }
+        .upload-placeholder {
+            pointer-events: none;
+        }
+        .upload-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        .upload-text {
+            color: #e5e5e5;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .upload-hint {
+            color: #9ca3af;
+            font-size: 12px;
+        }
+        .image-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .image-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .image-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            display: block;
+        }
+        .image-item .remove-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .image-item .remove-btn:hover {
+            background: #dc2626;
+            transform: scale(1.1);
+        }
+        .image-item .image-info {
+            padding: 8px;
+            font-size: 11px;
+            color: #9ca3af;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .image-item .image-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 2px;
+        }
+        .image-item .image-size {
+            color: #6b7280;
+        }
     </style>`;
   }
 
@@ -825,7 +944,107 @@ export class GuiTemplate {
             }
         }
 
-        // Handle form submission
+        // Image upload functionality
+        let uploadedImages = [];
+        
+        function setupImageUpload() {
+            const uploadArea = document.getElementById('uploadArea');
+            const imageInput = document.getElementById('imageInput');
+            const imagePreview = document.getElementById('imagePreview');
+            
+            // Click to upload
+            uploadArea.addEventListener('click', () => {
+                imageInput.click();
+            });
+            
+            // File input change
+            imageInput.addEventListener('change', (e) => {
+                handleFiles(e.target.files);
+            });
+            
+            // Drag and drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                handleFiles(e.dataTransfer.files);
+            });
+        }
+        
+        function handleFiles(files) {
+            Array.from(files).forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                        alert(\`Image "\${file.name}" is too large. Maximum size is 10MB.\`);
+                        return;
+                    }
+                    addImageToPreview(file);
+                } else {
+                    alert(\`"\${file.name}" is not a valid image file.\`);
+                }
+            });
+        }
+        
+        function addImageToPreview(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const imageId = 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                
+                uploadedImages.push({
+                    id: imageId,
+                    file: file,
+                    dataUrl: e.target.result,
+                    name: file.name,
+                    size: file.size
+                });
+                
+                renderImagePreview();
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function renderImagePreview() {
+            const imagePreview = document.getElementById('imagePreview');
+            imagePreview.innerHTML = '';
+            
+            uploadedImages.forEach(image => {
+                const imageItem = document.createElement('div');
+                imageItem.className = 'image-item';
+                imageItem.innerHTML = \`
+                    <img src="\${image.dataUrl}" alt="\${image.name}">
+                    <button class="remove-btn" onclick="removeImage('\${image.id}')">×</button>
+                    <div class="image-info">
+                        <div class="image-name">\${image.name}</div>
+                        <div class="image-size">\${formatFileSize(image.size)}</div>
+                    </div>
+                \`;
+                imagePreview.appendChild(imageItem);
+            });
+        }
+        
+        function removeImage(imageId) {
+            uploadedImages = uploadedImages.filter(img => img.id !== imageId);
+            renderImagePreview();
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Handle form submission with images
         document.getElementById('feedbackForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -833,17 +1052,20 @@ export class GuiTemplate {
             const terminalOutput = document.getElementById('terminalOutput').textContent;
             
             try {
+                const formData = new FormData();
+                formData.append('sessionId', sessionId);
+                formData.append('input', feedbackText);
+                formData.append('type', 'interactive_feedback');
+                formData.append('commandLogs', terminalOutput);
+                
+                // Add images to form data
+                uploadedImages.forEach((image, index) => {
+                    formData.append(\`image_\${index}\`, image.file);
+                });
+                
                 const response = await fetch('/submit', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        sessionId: sessionId,
-                        input: feedbackText,
-                        type: 'interactive_feedback',
-                        commandLogs: terminalOutput
-                    }),
+                    body: formData
                 });
                 
                 if (response.ok) {
@@ -874,6 +1096,9 @@ export class GuiTemplate {
         
         // Initialize selection detection
         setupSelectionDetection();
+        
+        // Initialize image upload
+        setupImageUpload();
         
         // Show terminal by default
         document.getElementById('terminalContent').classList.add('active');

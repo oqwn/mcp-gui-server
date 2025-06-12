@@ -26,6 +26,13 @@ export interface GuiInputResponse {
   timestamp: string;
   command_logs: string;
   interactive_feedback: string;
+  uploaded_images?: Array<{
+    fieldname: string;
+    filename: string;
+    mimetype: string;
+    data: Buffer;
+    size: number;
+  }>;
 }
 
 export interface CommandExecutionRequest {

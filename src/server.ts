@@ -71,17 +71,47 @@ server.tool(
         timeout * 1000
       );
 
-      return {
-        content: [
-          {
-            type: "text",
-            text: `User input received:
+      // Format uploaded images information and create proper MCP content
+      let imagesInfo = "";
+      const content: any[] = [];
+
+      if (result.uploaded_images && result.uploaded_images.length > 0) {
+        imagesInfo = `\nUploaded Images: ${result.uploaded_images.length} file(s)`;
+        result.uploaded_images.forEach((img: any, index: number) => {
+          imagesInfo += `\n  ${index + 1}. ${img.filename} (${img.mimetype}, ${(
+            img.size / 1024
+          ).toFixed(1)}KB)`;
+        });
+      }
+
+      // Add text content first
+      content.push({
+        type: "text",
+        text: `User input received:
 Type: ${result.type || "text"}
 Content: ${result.interactive_feedback || result.input}
-Command logs: ${result.command_logs || "No commands executed"}
+Command logs: ${result.command_logs || "No commands executed"}${imagesInfo}
 Timestamp: ${result.timestamp || new Date().toISOString()}`,
-          },
-        ],
+      });
+
+      // Add each image as a separate resource content item
+      if (result.uploaded_images && result.uploaded_images.length > 0) {
+        result.uploaded_images.forEach((img: any, index: number) => {
+          const base64Data = img.data.toString("base64");
+          content.push({
+            type: "resource",
+            resource: {
+              uri: `image://uploaded/${index + 1}/${img.filename}`,
+              mimeType: img.mimetype,
+              text: undefined,
+              blob: base64Data,
+            },
+          });
+        });
+      }
+
+      return {
+        content: content,
       };
     } catch (error) {
       return {
