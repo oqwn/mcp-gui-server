@@ -2,13 +2,41 @@
 
 [English](README.md) ｜ [简体中文](README_zh.md)
 
-A Model Context Protocol (MCP) server that provides graphical user interface interaction capabilities with Interactive Feedback style and terminal support.
+A modern Model Context Protocol (MCP) server that provides elegant graphical user interface interaction capabilities with Interactive Feedback style, terminal support, and advanced prompt engineering features.
 
 ![Demo](https://img.shields.io/badge/status-stable-green)
 ![Node.js](https://img.shields.io/badge/node.js-18%2B-blue)
 ![TypeScript](https://img.shields.io/badge/typescript-5.0%2B-blue)
+![MCP](https://img.shields.io/badge/MCP-compatible-purple)
 
-## 📦 Installation
+## 🚀 Quick Start
+
+### Option 1: NPX (Recommended for Testing)
+
+Test the server instantly without installation:
+
+```bash
+npx mcp-gui-server
+```
+
+### Option 2: Install from Source
+
+For development or customization:
+
+```bash
+# Clone the repository
+git clone https://github.com/oqwn/mcp-gui-server.git
+cd mcp-gui-server
+
+# Install dependencies
+pnpm install
+
+# Build the project
+pnpm run build
+
+# Start the server
+pnpm start
+```
 
 ### Prerequisites
 
@@ -21,74 +49,145 @@ Install pnpm if you haven't already:
 npm install -g pnpm
 ```
 
-### Install from Source
+## 💼 MCP Client Integration
 
-```bash
-# Clone the repository
-git clone https://github.com/oqwn/optimized-request.git
-cd optimized-request
+### Step 1: Configure Your MCP Client
 
-# Install dependencies (using pnpm)
-pnpm install
+Add the following configuration to your MCP client (Claude Desktop, Cursor, Windsurf, etc.), Remember add the model only if you would like a ai model to merify your result:
 
-# Build the project
-pnpm run build
+#### Using NPX (Recommended)
+
+```json
+{
+  "mcpServers": {
+    "mcp-gui-server": {
+      "command": "npx",
+      "args": ["mcp-gui-server", "--stdio"],
+      "env": {
+        "OPENROUTER_API_KEY": "YOUR API KEY",
+        "OPENROUTER_BASE_URL": "https://openrouter.ai/api/v1",
+        "OPENROUTER_MODEL": "MODEL YOUR SELECTED"
+      }
+    }
+  }
+}
 ```
 
-## 🚀 Usage
-
-### MCP Client Integration (Stdio Mode)
-
-The server runs in stdio mode by default, communicating via JSON-RPC:
-
-```bash
-pnpm start
-```
-
-Configure in your MCP client (e.g., Claude Desktop/Cursor/Windsurf):
+#### Using Local Installation
 
 ```json
 {
   "mcpServers": {
     "gui-server": {
       "command": "node",
-      "args": ["path/to/optimized-request/dist/server.js", "--stdio"],
-      "cwd": "path/to/optimized-request"
+      "args": [
+        "/Users/wenzijun/Documents/project/mcp-gui-server/dist/server.js",
+        "--stdio"
+      ],
+      "env": {
+        "OPENROUTER_API_KEY": "YOUR API KEY",
+        "OPENROUTER_BASE_URL": "https://openrouter.ai/api/v1",
+        "OPENROUTER_MODEL": "MODEL YOUR SELECTED"
+      }
     }
   }
 }
 ```
 
-### HTTP Mode (Testing)
+### Step 2: Restart Your MCP Client
 
-For testing and development:
+After configuration, restart your MCP client to load the server.
+
+### Step 3: Test the Integration
+
+In your AI assistant, the `gui-input` tool should now be available. Test it by asking:
+
+> "Please collect some user input via the GUI"
+
+## 🛠️ Development & Testing
+
+### HTTP Mode (Development)
+
+For local development and testing:
 
 ```bash
 pnpm run dev
 ```
 
-This starts the server in HTTP mode on `http://localhost:3501`
+Server will start on `http://localhost:3501` with hot reload.
 
-### Prompt Engineering
+## ✨ Features
 
-For the best results, add the following to your custom prompt in your AI assistant, you should add it on a rule or directly in the prompt (e.g., Cursor):
+### 🎯 Core Capabilities
+
+- **🖥️ Interactive GUI**: Beautiful, modern web interface for user input
+- **💻 Terminal Integration**: Execute commands with persistent shell sessions
+- **🔄 Real-time Feedback**: Interactive workflow with user collaboration
+- **🛡️ Session Management**: Secure, auto-expiring sessions with cleanup
+- **📱 Responsive Design**: Works seamlessly on desktop and mobile
+- **🎨 Syntax Highlighting**: Professional code block rendering
+
+### 🚀 Advanced Features
+
+- **🧠 Prompt Engineering**: Built-in AI-powered prompt enhancement
+- **🔌 13+ LLM Providers**: OpenAI, Anthropic, Groq, Ollama, and more
+- **🌍 Multi-language Support**: Maintains language consistency
+- **⚡ Hot Reloading**: Edit prompts without server restart
+- **📊 Error Handling**: Robust fallbacks and logging
+
+### 🎛️ Optimal AI Assistant Integration
+
+For the best results, add this rule to your AI assistant configuration:
+
 ```
-Whenever you want to ask a question, always call the MCP `gui-input`.  
-Whenever you’re about to complete a user request, call the MCP `gui-input` instead of simply ending the process.
-Keep calling MCP until the user’s feedback is empty, then end the request.
+1. Whenever you want to ask a question, always call the MCP gui-input.
+
+2. Whenever you're about to complete a user request, call the MCP gui-input instead of simply ending the process.
+
+3. Keep calling MCP until the user's feedback is empty, then end the request.
 ```
 
-## 📁 Project Structure
+_Example locations: Cursor rules, Claude Desktop custom instructions, etc._
+
+## 🏗️ Project Architecture
+
+This project follows modern modular architecture with clear separation of concerns:
 
 ```
-optimized-request/
+mcp-gui-server/
 ├── src/
-│   ├── server.ts         # Main MCP server implementation
-│   ├── gui-service.ts    # GUI service with terminal support
+│   ├── server.ts                 # Main MCP server implementation
+│   ├── gui-service.ts           # Main GUI service orchestrator
+│   ├── handlers/                # HTTP request handlers
+│   │   ├── base-handler.ts      # Base handler class
+│   │   ├── gui-handler.ts       # GUI interface handling
+│   │   ├── command-handler.ts   # Terminal command execution
+│   │   └── submit-handler.ts    # Form submission & LLM integration
+│   ├── services/                # Core business logic
+│   │   ├── session-service.ts   # Session management & cleanup
+│   │   ├── llm-service.ts       # Multi-provider LLM integration
+│   │   └── terminal-service.ts  # Shell command execution
+│   ├── templates/               # HTML template generation
+│   │   └── gui-template.ts      # Professional UI templates
+│   ├── utils/                   # Utility functions
+│   │   ├── markdown.ts          # Enhanced markdown → HTML
+│   │   └── network.ts           # Port management utilities
+│   └── types/                   # TypeScript interfaces
+│       └── interfaces.ts        # Shared type definitions
+├── prompts/                     # External prompt management
+│   ├── system-prompt.md         # Main enhancement prompt
 ├── package.json
 ├── tsconfig.json
 └── README.md
 ```
+
+### 📋 Architecture Benefits
+
+- **🔧 Maintainability**: Each module has single responsibility
+- **🧪 Testability**: Components can be tested in isolation
+- **♻️ Reusability**: Services can be used across different handlers
+- **📈 Scalability**: Easy to add new features without affecting existing code
+- **📚 Documentation**: Clear structure with comprehensive documentation
 
 ## 🐛 Troubleshooting
 
@@ -116,6 +215,22 @@ Ensure the shell process is properly initialized:
 - Commands maintain state in persistent shell
 - Use standard Unix/Linux commands
 - Terminal starts in home directory (~)
+
+### NPX Issues
+
+If `npx mcp-gui-server` fails:
+
+```bash
+# Clear npm cache
+npm cache clean --force
+
+# Try with explicit version
+npx mcp-gui-server@latest
+
+# Or install globally
+npm install -g mcp-gui-server
+mcp-gui-server
+```
 
 ## 🤝 Contributing
 
