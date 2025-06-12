@@ -25,8 +25,8 @@ npm install -g pnpm
 
 ```bash
 # 克隆仓库
-git clone https://github.com/oqwn/mcp-gui-server.git
-cd mcp-gui-server
+git clone https://github.com/oqwn/optimized-request.git
+cd optimized-request
 
 # 安装依赖
 pnpm install
@@ -82,7 +82,7 @@ pnpm run dev
 ## 📁 项目结构
 
 ```
-mcp-gui-server/
+optimized-request/
 ├── src/
 │   ├── server.ts         # 主服务器实现
 │   ├── gui-service.ts    # GUI 与终端服务
