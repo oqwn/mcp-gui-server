@@ -41,66 +41,58 @@ jobs:
       - name: Run tests (if available)
         run: pnpm test --if-present
 
-      - name: Configure git
+      - name: Get current version
+        id: version
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $CURRENT_VERSION"
 
-      - name: Check if version bump needed
+      - name: Check if version exists on npm
         id: version_check
         run: |
-          # Get current version from package.json
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
-          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-
-          # Check if this version already exists on npm
-          if npm view mcp-gui-server@$CURRENT_VERSION version > /dev/null 2>&1; then
-            echo "Version $CURRENT_VERSION already exists on npm, bumping patch version"
-            echo "needs_bump=true" >> $GITHUB_OUTPUT
+          VERSION=${{ steps.version.outputs.version }}
+          if npm view mcp-gui-server@$VERSION version > /dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Version $VERSION already exists on npm - skipping publish"
           else
-            echo "Version $CURRENT_VERSION is new, no bump needed"
-            echo "needs_bump=false" >> $GITHUB_OUTPUT
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "✅ Version $VERSION is new - ready to publish"
           fi
 
-      - name: Bump version if needed
-        if: steps.version_check.outputs.needs_bump == 'true'
-        run: |
-          npm version patch --no-git-tag-version
-          NEW_VERSION=$(node -p "require('./package.json').version")
-          echo "Bumped version to $NEW_VERSION"
-
-          # Commit the version change
-          git add package.json
-          git commit -m "Auto-bump version to $NEW_VERSION [skip ci]"
-          git push origin main
-
-      - name: Get final version
-        id: final_version
-        run: |
-          FINAL_VERSION=$(node -p "require('./package.json').version")
-          echo "final_version=$FINAL_VERSION" >> $GITHUB_OUTPUT
-          echo "Final version: $FINAL_VERSION"
-
       - name: Publish to npm
-        run: npm publish --access public
+        if: steps.version_check.outputs.exists == 'false'
+        run: |
+          echo "🚀 Publishing mcp-gui-server@${{ steps.version.outputs.version }} to npm..."
+          npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Create Git tag
+      - name: Skip publish notification
+        if: steps.version_check.outputs.exists == 'true'
         run: |
-          VERSION=${{ steps.final_version.outputs.final_version }}
-          git tag "v$VERSION"
-          git push origin "v$VERSION"
+          echo "⏭️ Skipping publish - version ${{ steps.version.outputs.version }} already exists"
+          echo "💡 To publish a new version, manually update package.json version and push"
 
-      - name: Create GitHub Release
+      - name: Create Git tag (only if published)
+        if: steps.version_check.outputs.exists == 'false'
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag "v$VERSION" || echo "Tag v$VERSION already exists"
+          git push origin "v$VERSION" || echo "Failed to push tag, continuing..."
+
+      - name: Create GitHub Release (only if published)
+        if: steps.version_check.outputs.exists == 'false'
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ steps.final_version.outputs.final_version }}
-          release_name: Release v${{ steps.final_version.outputs.final_version }}
+          tag_name: v${{ steps.version.outputs.version }}
+          release_name: Release v${{ steps.version.outputs.version }}
           body: |
-            ## Changes in v${{ steps.final_version.outputs.final_version }}
+            ## Changes in v${{ steps.version.outputs.version }}
 
             🤖 **Auto-published by GitHub Actions**
 
@@ -111,6 +103,8 @@ jobs:
 
             ### Installation:
             ```bash
+            npx mcp-gui-server@${{ steps.version.outputs.version }}
+            # Or latest:
             npx mcp-gui-server@latest
             ```
 
@@ -132,12 +126,14 @@ jobs:
             }
             ```
 
-            **Full documentation:** [README.md](README.md)
+            **Full documentation:** [README.md](README.md) | [中文文档](README_zh.md)
           draft: false
           prerelease: false
 
-      - name: Notify success
+      - name: Success notification
+        if: steps.version_check.outputs.exists == 'false'
         run: |
-          echo "🎉 Successfully published mcp-gui-server@${{ steps.final_version.outputs.final_version }} to npm!"
+          echo "🎉 Successfully published mcp-gui-server@${{ steps.version.outputs.version }} to npm!"
           echo "📦 Package available at: https://www.npmjs.com/package/mcp-gui-server"
-          echo "🚀 Install with: npx mcp-gui-server@latest"
+          echo "🚀 Install with: npx mcp-gui-server@${{ steps.version.outputs.version }}"
+          echo "🔗 Test with: npx mcp-gui-server@latest"
