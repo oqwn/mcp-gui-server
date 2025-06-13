@@ -50,6 +50,7 @@ export class GuiTemplate {
                         <input type="text" class="command-input" id="commandInput" placeholder="Enter command..." />
                         <button class="execute-btn" onclick="executeCommand()">Execute</button>
                     </div>
+                    <div class="terminal-hint">💡 Tip: Type "clear" to clear all terminal output</div>
                     <div class="terminal-output" id="terminalOutput"></div>
                 </div>
             </div>
@@ -527,6 +528,12 @@ export class GuiTemplate {
         .execute-btn:hover {
             background: #2563eb;
             transform: translateY(-1px);
+        }
+        .terminal-hint {
+            color: #6b7280;
+            font-size: 12px;
+            margin-bottom: 12px;
+            text-align: center;
         }
         .terminal-output {
             background: rgba(10, 10, 10, 0.8);

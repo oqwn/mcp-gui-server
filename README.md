@@ -9,6 +9,11 @@ A modern Model Context Protocol (MCP) server that provides elegant graphical use
 ![TypeScript](https://img.shields.io/badge/typescript-5.0%2B-blue)
 ![MCP](https://img.shields.io/badge/MCP-compatible-purple)
 
+## Preview
+
+![Feature Demo](images/home.gif)
+_MCP for cost cut of frequest based ai services_
+
 ## 🚀 Quick Start
 
 ### Option 1: NPX (Recommended for Testing)
@@ -75,19 +80,22 @@ Add the following configuration to your MCP client (Claude Desktop, Cursor, Wind
 
 #### Using Local Installation
 
+before using below mcp configuration you should get this repositiry and run
+
+```bash
+pnpm run build
+```
+
 ```json
 {
   "mcpServers": {
     "gui-server": {
       "command": "node",
-      "args": [
-        "/Users/wenzijun/Documents/project/mcp-gui-server/dist/server.js",
-        "--stdio"
-      ],
+      "args": ["/path/to/dist/server.js", "--stdio"],
       "env": {
         "OPENROUTER_API_KEY": "YOUR API KEY",
         "OPENROUTER_BASE_URL": "https://openrouter.ai/api/v1",
-        "OPENROUTER_MODEL": "MODEL YOUR SELECTED"
+        "OPENROUTER_MODEL": "MODEL YOU SELECTED"
       }
     }
   }
@@ -128,6 +136,9 @@ Server will start on `http://localhost:3501` with hot reload.
 - **📱 Responsive Design**: Works seamlessly on desktop and mobile
 - **🎨 Syntax Highlighting**: Professional code block rendering
 
+![Terminal Feature Demo](images/terminal.gif)
+_Interactive terminal with persistent shell sessions and command execution_
+
 ### 🚀 Advanced Features
 
 - **🧠 Prompt Engineering**: Built-in AI-powered prompt enhancement
@@ -135,6 +146,9 @@ Server will start on `http://localhost:3501` with hot reload.
 - **🌍 Multi-language Support**: Maintains language consistency
 - **⚡ Hot Reloading**: Edit prompts without server restart
 - **📊 Error Handling**: Robust fallbacks and logging
+
+![Prompt Enhancement Demo](images/enhance.gif)
+_AI-powered prompt enhancement with multiple LLM providers_
 
 ### 📷 Image Upload Features
 
@@ -145,6 +159,9 @@ Server will start on `http://localhost:3501` with hot reload.
 - **🖼️ Preview Grid**: Thumbnail previews with file information and remove functionality
 - **🤖 AI Compatible**: Images properly formatted for multimodal AI model analysis
 - **🔒 Secure Processing**: Images converted to base64 and included in MCP responses
+
+![Image Upload Demo](images/upload.gif)
+_Drag & drop image upload with preview and validation_
 
 ### 🎛️ Optimal AI Assistant Integration
 
@@ -185,6 +202,10 @@ mcp-gui-server/
 │   │   └── network.ts           # Port management utilities
 │   └── types/                   # TypeScript interfaces
 │       └── interfaces.ts        # Shared type definitions
+├── images/                      # Demo GIFs and documentation assets
+│   ├── terminal.gif             # Terminal feature demonstration
+│   ├── enhance.gif              # Prompt enhancement demonstration
+│   └── upload.gif               # Image upload feature demonstration
 ├── prompts/                     # External prompt management
 │   ├── system-prompt.md         # Main enhancement prompt
 ├── package.json

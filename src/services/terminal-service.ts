@@ -78,12 +78,13 @@ export class TerminalService {
       const checkReady = () => {
         if (session.shellProcess && session.shellProcess.stdin) {
           // Send a simple echo command to test if shell is responsive
-          session.shellProcess.stdin.write("echo 'shell_ready'\n");
+          // Use a unique marker that we'll filter out from logs
+          session.shellProcess.stdin.write("echo '__shell_init_test__'\n");
 
           // Listen for the response
           const onData = (data: Buffer) => {
             const output = data.toString();
-            if (output.includes("shell_ready")) {
+            if (output.includes("__shell_init_test__")) {
               session.shellReady = true;
               clearTimeout(timeout);
               session.shellProcess!.stdout?.off("data", onData);
@@ -115,8 +116,21 @@ export class TerminalService {
       .replace(/\s+/g, " ") // Normalize whitespace
       .trim();
 
+    // Handle special "clear" command
+    if (normalizedCommand.toLowerCase() === "clear") {
+      // Clear all command logs
+      session.commandLogs = [""];
+      return;
+    }
+
     // Add command to logs (with prompt-like format)
-    session.commandLogs!.push(`$ ${normalizedCommand}\n`);
+    // Ensure the command starts on a new line if there's previous output
+    const lastLog = session.commandLogs![session.commandLogs!.length - 1];
+    if (lastLog && !lastLog.endsWith("\n")) {
+      session.commandLogs!.push(`\n$ ${normalizedCommand}`);
+    } else {
+      session.commandLogs!.push(`$ ${normalizedCommand}`);
+    }
 
     // Check if this is an HTTP request command that needs clean output
     const isHttpCommand = this.isHttpRequestCommand(normalizedCommand);
@@ -205,6 +219,11 @@ export class TerminalService {
 
     const lines = output.split("\n");
     const cleanLines = lines.filter((line) => {
+      // Filter out shell initialization marker
+      if (line.includes("__shell_init_test__")) {
+        return false;
+      }
+
       // Only remove very specific curl progress patterns
       // Remove lines that are clearly progress bars with percentages and transfer data
       if (
@@ -233,6 +252,16 @@ export class TerminalService {
     // Only remove trailing % if it's at the very end and likely from curl
     if (result.endsWith("%\n") || result.endsWith("%")) {
       result = result.replace(/%\s*$/, "");
+    }
+
+    // Ensure command output starts on a new line and ends with one for next command
+    if (result && result.trim()) {
+      if (!result.startsWith("\n")) {
+        result = "\n" + result;
+      }
+      if (!result.endsWith("\n")) {
+        result = result + "\n";
+      }
     }
 
     // Ensure we return something if we have content
