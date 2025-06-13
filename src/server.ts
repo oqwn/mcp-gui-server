@@ -55,7 +55,7 @@ server.tool(
   async ({
     prompt = "Please provide your input",
     title = "GUI Input",
-    timeout = 300,
+    timeout = 900,
   }) => {
     try {
       // Only log GUI input in debug mode when in stdio

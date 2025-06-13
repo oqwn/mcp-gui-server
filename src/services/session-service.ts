@@ -95,8 +95,8 @@ export class SessionService {
     setInterval(() => {
       const now = Date.now();
       for (const [sessionId, session] of this.guiSessions.entries()) {
-        if (now - session.timestamp > 5 * 60 * 1000) {
-          // 5 minutes timeout
+        if (now - session.timestamp > 15 * 60 * 1000) {
+          // 15 minutes timeout
           TerminalService.cleanupShellProcess(session);
           session.reject(new Error("Session timeout"));
           this.guiSessions.delete(sessionId);

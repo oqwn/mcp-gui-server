@@ -249,7 +249,7 @@ export class GuiTemplate {
                 </ol>
                 <p><strong>Possible reasons:</strong></p>
                 <ul>
-                  <li>Session expired (default 5-minute timeout)</li>
+                  <li>Session expired (default 15-minute timeout)</li>
                   <li>Invalid or missing Session ID</li>
                   <li>Server restarted, sessions cleared</li>
                 </ul>

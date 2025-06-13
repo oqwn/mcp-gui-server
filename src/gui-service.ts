@@ -116,7 +116,7 @@ export class GuiService {
   public async openGuiAndWaitForInput(
     prompt?: string,
     title?: string,
-    timeoutMs: number = 5 * 60 * 1000
+    timeoutMs: number = 15 * 60 * 1000
   ): Promise<any> {
     return new Promise((resolve, reject) => {
       const sessionId = this.sessionService.createSession(
