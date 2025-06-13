@@ -12,7 +12,7 @@ A modern Model Context Protocol (MCP) server that provides elegant graphical use
 ## Preview
 
 ![Feature Demo](images/home.gif)
-_MCP for cost cut of frequest based ai services_
+_MCP for cost cut of request based ai services_
 
 ## 🚀 Quick Start
 
